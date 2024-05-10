@@ -8,7 +8,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Julianavelasques\\MyApi\\": "src/"
+      "App\\": "src/"
     }
   },
   "authors": [
