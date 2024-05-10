@@ -1,0 +1,27 @@
+# Ignore vendor directory (contains Composer dependencies)
+/vendor/
+
+# Ignore any logs or temporary files
+/log/
+/tmp/
+/temp/
+/cache/
+
+# Ignore environment-specific files
+/.env
+
+# Ignore IDE-specific files
+/.idea/
+/.vscode/
+
+# Ignore Composer lock file
+/composer.lock
+
+# Ignore any user-specific files
+/.DS_Store
+/.phpunit.result.cache
+/.phpunit.cache
+/.phpunit*
+/.coverage
+/.selenium*
+/codeception.yml
