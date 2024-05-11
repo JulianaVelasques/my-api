@@ -3,7 +3,11 @@
     use App\controllers\AccountController;
 
     return function (App $app) {
-        $app->get('/reset', [AccountController::class, 'reset']);
+        $app->post('/reset', [AccountController::class, 'reset']);
+        $app->get('/balance', [AccountController::class, 'getBalance']);
+        $app->post('/event', [AccountController::class, 'deposit']);
+
+        
     };
 
 ?>
