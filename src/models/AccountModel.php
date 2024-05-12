@@ -23,5 +23,13 @@
         public function deposit($amount){
             $this->balance += $amount;
         }
+
+        public function withdraw($amount){
+            $this->balance -= $amount;
+        }
+
+        public function transfer($amount){
+            $this->balance -= $amount;
+        }
     }
 ?>
