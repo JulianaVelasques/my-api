@@ -4,7 +4,11 @@
     use App\models\AccountModel;
 
     class AccountUtils {
-        public static function checkAccountId($accounts, string $accountId){
+        public static function getAccountById($accounts, string $accountId){
+            if(empty($accounts)){
+                return null;
+            }
+            
             foreach($accounts as $account){
                 if($account->getId() === $accountId){
                     return $account;

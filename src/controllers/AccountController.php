@@ -30,21 +30,19 @@
             $queryParams = $request -> getQueryParams();
             $accountId = $queryParams["account_id"];
 
-            // Early return
-            if(empty($this->accounts)){
-                $response->getBody()->write("0");
-                return $response->withStatus(404);
-            }
-
-            $foundAccountId = AccountUtils::checkAccountId($this->accounts, $accountId);
+            $foundAccountId = AccountUtils::getAccountById($this->accounts, $accountId);
 
             if($foundAccountId !== null){
                 $balance = $foundAccountId->getBalance();
+
                 $balanceAsString = strval($balance); // convert to string to write
+
                 $response->getBody()->write($balanceAsString);
+
                 return $response->withStatus(200);
             } else {
                 $response->getBody()->write("0");
+
                 return $response->withStatus(404);
             }
         }
@@ -55,38 +53,14 @@
             if($data["type"] === "deposit"){
                 $accountId = $data["destination"];
 
-                if(empty($this->accounts)){
-                    $newAccount = new AccountModel($accountId, $data["amount"]);
+                $foundAccount = AccountUtils::getAccountById($this->accounts, $accountId);
 
-                    $this->accounts[] = $newAccount;
-
-                    AccountUtils::saveAccountToFile($this->accounts);
-
-                    // Create response object
-                    $responseData = [
-                        'destination' => [
-                            'id' => $newAccount->getId(),
-                            'balance' => $newAccount->getBalance(),
-                        ]
-                    ];
-
-                    // Transform response in json
-                    $jsonResponse = json_encode($responseData);
-
-                    $response->getBody()->write($jsonResponse);
-
-                    return $response->withStatus(201);
-                }
-
-                $foundAccount = AccountUtils::checkAccountId($this->accounts, $accountId);
-
-                // Account not empty but the id was not found
                 if($foundAccount === null){
                     // Create an account
                     $newAccount = new AccountModel($accountId, $data["amount"]);
 
                     $this->accounts[] = $newAccount;
-
+                    // Rewrite the accounts.txt with the accounts value
                     AccountUtils::saveAccountToFile($this->accounts);
 
                     // Create response object
@@ -108,7 +82,6 @@
 
                     AccountUtils::saveAccountToFile($this->accounts);
 
-                    // Create response object
                     $responseData = [
                         'destination' => [
                             'id' => $foundAccount->getId(),
@@ -116,7 +89,6 @@
                         ]
                     ];
 
-                    // Transform response in json
                     $jsonResponse = json_encode($responseData);
 
                     $response->getBody()->write($jsonResponse);
@@ -126,34 +98,32 @@
 
             }
 
-
             if($data["type"] === "withdraw"){
                 $accountId = $data["origin"];
 
-                $foundAccount = AccountUtils::checkAccountId($this->accounts, $accountId);
+                $foundAccount = AccountUtils::getAccountById($this->accounts, $accountId);
 
                 if($foundAccount === null){
                     $response->getBody()->write("0");
                     return $response->withStatus(404);
+                } else {
+                    $foundAccount->withdraw($data["amount"]);
+
+                    AccountUtils::saveAccountToFile($this->accounts);
+
+                    $responseData = [
+                        'origin' => [
+                            'id' => $foundAccount->getId(),
+                            'balance' => $foundAccount->getBalance(),
+                        ]
+                    ];
+    
+                    $jsonResponse = json_encode($responseData);
+                    
+                    $response->getBody()->write($jsonResponse);
+
+                    return $response->withStatus(201);
                 }
-
-                $foundAccount->withdraw($data["amount"]);
-
-                AccountUtils::saveAccountToFile($this->accounts);
-                // Create response object
-                $responseData = [
-                    'origin' => [
-                        'id' => $foundAccount->getId(),
-                        'balance' => $foundAccount->getBalance(),
-                    ]
-                ];
-
-                // Transform response in json
-                $jsonResponse = json_encode($responseData);
-                
-                $response->getBody()->write($jsonResponse);
-                return $response->withStatus(201);
-                
             }
 
             if($data["type"] === "transfer"){
@@ -161,18 +131,16 @@
                 $accountDestinationId = $data["destination"];
                 $destinationAmount = $data["amount"];
 
-                $foundAccountOrigin = AccountUtils::checkAccountId($this->accounts, $accountOriginId);
+                $foundAccountOrigin = AccountUtils::getAccountById($this->accounts, $accountOriginId);
 
                 if($foundAccountOrigin === null){
                     $response->getBody()->write("0");
                     return $response->withStatus(404); 
-                } 
-                
-                $foundAccountOrigin->transfer($destinationAmount);
+                } else {
+                    $foundAccountOrigin->transfer($destinationAmount);
 
                     AccountUtils::saveAccountToFile($this->accounts);
     
-                    // Create response object
                     $responseData = [
                         'origin' => [
                             'id' => $foundAccountOrigin->getId(),
@@ -185,11 +153,12 @@
                         ]
                     ];
     
-                    // Transform response in json
                     $jsonResponse = json_encode($responseData);
                         
                     $response->getBody()->write($jsonResponse);
-                    return $response->withStatus(201);     
+
+                    return $response->withStatus(201);  
+                }
             }
         }
     }
